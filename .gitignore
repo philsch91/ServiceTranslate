@@ -1,0 +1,48 @@
+# .gitignore ServiceTranslate
+
+# directories
+.idea/
+.eclipse/
+target/
+
+# files
+*.class
+*.jar
+*.war
+*.ear
+*.logs
+*.log
+*.iml
+*.zip
+*.rar
+*.tar
+*.tar.gz
+*.tar.bz2
+*.bak
+.DS_Store
+
+# java related
+target/**
+*.jar
+*.war
+*.ear
+*.class
+
+# eclipse specific
+.eclipse
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+*.launch
+*.pydevproject
+.externalToolBuilders/
+
