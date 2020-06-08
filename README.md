@@ -1,12 +1,16 @@
 # ServiceTranslate
 
-## Build and Run 
-
+## Compile
 1. `mvn clean compile assembly:single`
-2. `docker build -t se/service-translate .`
-3. `docker tag se/service-translate rabbitcarrental.azurecr.io/se/service-translate:latest`
-4. `docker login rabbitcarrental.azurecr.io`
-5. `docker push rabbitcarrental.azurecr.io/se/service-translate:latest`
-6. `docker logout rabbitcarrental.azurecr.io`
-7. `docker run -p 8443:8443 se/service-translate`
+
+## Run
+1. `java -Dconfig=config.json -Dssl=true -jar target/service-translate-1.0-SNAPSHOT-jar-with-dependencies.jar`
+
+## Build Container
+1. `docker build -t se/service-translate .`
+2. `docker tag se/service-translate rabbitcarrental.azurecr.io/se/service-translate:latest`
+3. `docker login rabbitcarrental.azurecr.io`
+4. `docker push rabbitcarrental.azurecr.io/se/service-translate:latest`
+5. `docker logout rabbitcarrental.azurecr.io`
+6. `docker run -p 8443:8443 se/service-translate`
 

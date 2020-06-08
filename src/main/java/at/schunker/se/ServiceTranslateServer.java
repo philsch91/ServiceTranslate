@@ -10,15 +10,24 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Scanner;
 
 public class ServiceTranslateServer {
 
     static final boolean SSL = System.getProperty("ssl") != null;
     static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
+    static final String CONFIG = System.getProperty("config",null);
 
     public static void main( String[] args ) throws Exception {
         System.out.println("ServiceTranslateApp");
         ServiceTranslateServer server = new ServiceTranslateServer();
+        server.readConfig();
         server.bootstrap();
     }
 
@@ -56,5 +65,33 @@ public class ServiceTranslateServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    public void readConfig(){
+        if (CONFIG == null) {
+            System.err.println("-Dconfig=<path> is missing");
+            return;
+        }
+
+        File configFile = new File(CONFIG);
+        if (!configFile.exists()){
+            System.err.println(CONFIG + " not existing");
+            return;
+        }
+
+        String jsonText = null;
+
+        try {
+            InputStream is = new FileInputStream(CONFIG);
+            jsonText = IOUtils.toString(is, "UTF-8");
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
+            return;
+        }
+
+        System.err.println(jsonText);
+        JSONObject json = new JSONObject(jsonText);
+        String a = json.getString("test");
+        System.err.println(a);
     }
 }
