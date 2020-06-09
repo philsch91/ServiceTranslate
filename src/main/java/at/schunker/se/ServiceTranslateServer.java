@@ -1,5 +1,6 @@
 package at.schunker.se;
 
+import at.schunker.se.helper.SSLConfiguration;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -13,9 +14,13 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 public class ServiceTranslateServer {
@@ -23,10 +28,14 @@ public class ServiceTranslateServer {
     static final boolean SSL = System.getProperty("ssl") != null;
     static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
     static final String CONFIG = System.getProperty("config",null);
+    static final String KEYSTORE = System.getProperty("javax.net.ssl.keyStore", null);
+    static final String TRUSTSTORE = System.getProperty("javax.net.ssl.trustStore", null);
 
     public static void main( String[] args ) throws Exception {
         System.out.println("ServiceTranslateApp");
+
         ServiceTranslateServer server = new ServiceTranslateServer();
+        server.setup();
         server.readConfig();
         server.bootstrap();
     }
@@ -67,7 +76,17 @@ public class ServiceTranslateServer {
         }
     }
 
-    public void readConfig(){
+    public void setup() throws KeyManagementException, NoSuchAlgorithmException {
+        if (KEYSTORE == null && TRUSTSTORE == null) {
+            SSLContext sc = SSLConfiguration.initDefaultSSLContext();
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            return;
+        }
+
+        //TODO: read keystore and call SSLConfiguration.createSSLSocketFactory()
+    }
+
+    public void readConfig() {
         if (CONFIG == null) {
             System.err.println("-Dconfig=<path> is missing");
             return;

@@ -4,7 +4,7 @@
 1. `mvn clean compile assembly:single`
 
 ## Run
-1. `java -Dconfig=config.json -Dssl=true -jar target/service-translate-1.0-SNAPSHOT-jar-with-dependencies.jar`
+1. `java -Dconfig=config.json -Dssl=true -Dport=9999 -jar target/service-translate-1.0-SNAPSHOT-jar-with-dependencies.jar`
 
 ## Build Container
 1. `docker build -t se/service-translate .`
