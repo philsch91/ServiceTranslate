@@ -1,5 +1,8 @@
 package at.schunker.se;
 
+import at.schunker.se.model.STHttpRequest;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -33,14 +36,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     private HttpRequest request;
     // Buffer that stores the response content
     private final StringBuilder buf = new StringBuilder();
-    protected HttpVersion protocolVersion = null;
-    protected String hostname = null;
-    protected String requestUri = null;
-    protected Hashtable<String, String> headers = null;
-    protected Hashtable<String, List<String>> queryParameters = null;
-    protected Hashtable<String, String> trailingHeaders = null;
-    protected List<Cookie> cookies = null;
     protected String requestBody = null;
+    protected STHttpRequest incomingRequest = null;
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -58,32 +55,36 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
             this.buf.setLength(0);
 
-            this.protocolVersion = request.protocolVersion();
-            this.hostname = request.headers().get(HttpHeaderNames.HOST, "unknown");
-            this.requestUri = request.uri();
+            this.incomingRequest = new STHttpRequest();
+            this.incomingRequest.setProtocolVersion(request.protocolVersion());
+            String hostname = request.headers().get(HttpHeaderNames.HOST, "unknown");
+            this.incomingRequest.setHostname(hostname);
+            this.incomingRequest.setUri(request.uri());
 
             HttpHeaders headers = request.headers();
 
             if (!headers.isEmpty()) {
-                this.headers = new Hashtable<>(headers.size());
+                Hashtable headerstable = new Hashtable<>(headers.size());
                 for (Map.Entry<String, String> h : headers) {
                     String key = h.getKey();
                     String value = h.getValue();
-                    this.headers.put(key, value);
+                    headerstable.put(key, value);
                 }
+                this.incomingRequest.setHeaders(headerstable);
             }
 
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.uri());
             Map<String, List<String>> params = queryStringDecoder.parameters();
 
             if (!params.isEmpty()) {
-                this.queryParameters = new Hashtable<>(params.size());
+                Hashtable queryParameters = new Hashtable<>(params.size());
                 for (Map.Entry<String, List<String>> p : params.entrySet()) {
                     String key = p.getKey();
                     List<String> vals = p.getValue();
 
-                    this.queryParameters.put(key, vals);
+                    queryParameters.put(key, vals);
                 }
+                this.incomingRequest.setQueryParameters(queryParameters);
             }
 
             HttpServerHandler.appendDecoderResult(buf, request);
@@ -102,12 +103,13 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 LastHttpContent trailer = (LastHttpContent) msg;
 
                 if (!trailer.trailingHeaders().isEmpty()) {
-                    this.trailingHeaders = new Hashtable<>(trailer.trailingHeaders().size());
+                    Hashtable trailingHeaders = new Hashtable<>(trailer.trailingHeaders().size());
                     for (String name: trailer.trailingHeaders().names()) {
                         for (String value: trailer.trailingHeaders().getAll(name)) {
-                            this.trailingHeaders.put(name, value);
+                            trailingHeaders.put(name, value);
                         }
                     }
+                    this.incomingRequest.setTrailingHeaders(trailingHeaders);
                 }
 
                 this.requestBody = this.buf.toString();
@@ -153,12 +155,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     protected boolean handleJsonRequest() throws Exception {
-        JSONObject json = this.decodeJsonBody();
-        if (json == null) {
+        HashMap<String, String> body = this.decodeJsonBody();
+        if (body == null) {
             return false;
         }
 
-        System.err.println("received " + json.toString());
+        System.err.println("received " + this.incomingRequest.getBody().toString());
         //return false;
         ///*
         //compare with config
@@ -199,8 +201,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         //*/
     }
 
-    protected JSONObject decodeJsonBody() {
-        String contentType = this.headers.get("Content-Type");
+    protected HashMap<String, String> decodeJsonBody() {
+        String contentType = this.incomingRequest.getHeaders().get("Content-Type");
         if (contentType == null || !contentType.equalsIgnoreCase("application/json")) {
             return null;
         }
@@ -211,14 +213,21 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             json = new JSONObject(this.requestBody);
         } catch (JSONException ex) {
             System.err.println(ex.getMessage());
+            return null;
         }
 
-        return json;
+        HashMap<String, String> body = null;
+
+        Gson gson = new GsonBuilder().create();
+        body = gson.fromJson(json.toString(), HashMap.class);
+        this.incomingRequest.setBody(body);
+
+        return body;
     }
 
     private boolean writeResponse(HttpObject currentObj, ChannelHandlerContext ctx) {
         // Decide whether to close the connection or not.
-        boolean keepAlive = HttpUtil.isKeepAlive(request);
+        boolean keepAlive = HttpUtil.isKeepAlive(this.request);
 
         // Build the response object.
         FullHttpResponse response = new DefaultFullHttpResponse(
@@ -236,17 +245,18 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         // Encode the cookie.
-        String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
+        String cookieString = this.request.headers().get(HttpHeaderNames.COOKIE);
 
         if (cookieString != null) {
             Set<Cookie> cookies = ServerCookieDecoder.STRICT.decode(cookieString);
             if (!cookies.isEmpty()) {
-                this.cookies = new ArrayList<Cookie>();
+                List<Cookie> cookieList = new ArrayList<Cookie>();
                 // Reset the cookies if necessary.
                 for (Cookie cookie: cookies) {
-                    this.cookies.add(cookie);
+                    cookies.add(cookie);
                     response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
                 }
+                this.incomingRequest.setCookies(cookieList);
             }
         }
 

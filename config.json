@@ -1,1 +1,25 @@
-{"test":"value"}
+{
+  "test": "value",
+  "inbound": {
+    "request1": {
+      "uri": "/",
+      "headers": [],
+      "body": {
+        "msg": "val1"
+      }
+    }
+  },
+  "outbound": {
+    "request1": {
+      "url": "http://localhost:9999",
+      "uri": "/",
+      "headers": {
+        "Cache-Control": "no-cache"
+      },
+      "body": {
+        "newMsg": "request1.body.msg",
+        "additionalMsg": "val2"
+      }
+    }
+  }
+}

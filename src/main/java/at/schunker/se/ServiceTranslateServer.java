@@ -1,6 +1,9 @@
 package at.schunker.se;
 
 import at.schunker.se.helper.SSLConfiguration;
+import at.schunker.se.model.STHttpRequest;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -112,5 +115,9 @@ public class ServiceTranslateServer {
         JSONObject json = new JSONObject(jsonText);
         String a = json.getString("test");
         System.err.println(a);
+
+        Gson gson = new GsonBuilder().create();
+        STHttpRequest httpRequest = gson.fromJson(json.getJSONObject("inbound").getJSONObject("request1").toString(), STHttpRequest.class);
+        System.err.println(httpRequest.toString());
     }
 }
