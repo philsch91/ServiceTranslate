@@ -4,6 +4,7 @@ import at.schunker.se.helper.SSLConfiguration;
 import at.schunker.se.model.STHttpRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -24,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class ServiceTranslateServer {
@@ -117,7 +120,10 @@ public class ServiceTranslateServer {
         System.err.println(a);
 
         Gson gson = new GsonBuilder().create();
-        STHttpRequest httpRequest = gson.fromJson(json.getJSONObject("inbound").getJSONObject("request1").toString(), STHttpRequest.class);
-        System.err.println(httpRequest.toString());
+        //STHttpRequest httpRequest = gson.fromJson(json.getJSONObject("inbound").getJSONObject("request1").toString(), STHttpRequest.class);
+        Map<String, STHttpRequest> requestList = gson.fromJson(json.getJSONObject("inbound").toString(), new TypeToken<Map<String, STHttpRequest>>(){}.getType());
+
+        System.err.println(requestList.toString());
+        System.err.println(requestList.get("request1").toString());
     }
 }

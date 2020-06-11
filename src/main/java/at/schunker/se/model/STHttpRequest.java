@@ -6,12 +6,13 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Considerations:
  * implements io.netty.handler.codec.http.HttpMessage
  */
-public class STHttpRequest {
+public class STHttpRequest implements Cloneable {
     protected HttpVersion protocolVersion = null;
     protected String hostname = null;
     protected String url = null;
@@ -96,17 +97,47 @@ public class STHttpRequest {
         this.body = body;
     }
 
+    // Object
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof STHttpRequest)) return false;
+        STHttpRequest that = (STHttpRequest) o;
+        return Objects.equals(protocolVersion, that.protocolVersion) &&
+                Objects.equals(hostname, that.hostname) &&
+                Objects.equals(url, that.url) &&
+                Objects.equals(uri, that.uri) &&
+                Objects.equals(headers, that.headers) &&
+                Objects.equals(queryParameters, that.queryParameters) &&
+                Objects.equals(trailingHeaders, that.trailingHeaders) &&
+                Objects.equals(cookies, that.cookies) &&
+                Objects.equals(body, that.body);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(protocolVersion, hostname, url, uri, headers, queryParameters, trailingHeaders, cookies, body);
+    }
+
     @Override
     public String toString() {
         return "STHttpRequest{" +
                 "protocolVersion=" + protocolVersion +
                 ", hostname='" + hostname + '\'' +
-                ", requestUri='" + uri + '\'' +
+                ", url='" + url + '\'' +
+                ", uri='" + uri + '\'' +
                 ", headers=" + headers +
                 ", queryParameters=" + queryParameters +
                 ", trailingHeaders=" + trailingHeaders +
                 ", cookies=" + cookies +
                 ", body='" + body + '\'' +
                 '}';
+    }
+
+    // Cloneable
+
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

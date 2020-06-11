@@ -160,7 +160,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
             return false;
         }
 
-        System.err.println("received " + this.incomingRequest.getBody().toString());
+        System.err.println("received " + this.incomingRequest.toString());
         //return false;
         ///*
         //compare with config
