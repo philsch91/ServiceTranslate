@@ -21,7 +21,7 @@ public class STHttpRequest implements Cloneable {
     protected Hashtable<String, List<String>> queryParameters = null;
     protected Hashtable<String, String> trailingHeaders = null;
     protected List<Cookie> cookies = null;
-    protected HashMap<String, String> body = null;
+    protected Object body = null;
 
     public STHttpRequest() {}
 
@@ -89,11 +89,11 @@ public class STHttpRequest implements Cloneable {
         this.cookies = cookies;
     }
 
-    public HashMap<String, String> getBody() {
+    public Object getBody() {
         return this.body;
     }
 
-    public void setBody(HashMap<String, String> body) {
+    public void setBody(Object body) {
         this.body = body;
     }
 

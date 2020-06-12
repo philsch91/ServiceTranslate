@@ -1,5 +1,7 @@
 package at.schunker.se;
 
+import at.schunker.se.config.STRequestConfig;
+import at.schunker.se.helper.STRequestMapping;
 import at.schunker.se.model.STHttpRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,19 +21,15 @@ import org.json.JSONObject;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.*;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.*;
 
-public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
+public class STHttpServerHandler extends SimpleChannelInboundHandler<Object> {
 
     private HttpRequest request;
     // Buffer that stores the response content
@@ -87,7 +85,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
                 this.incomingRequest.setQueryParameters(queryParameters);
             }
 
-            HttpServerHandler.appendDecoderResult(buf, request);
+            STHttpServerHandler.appendDecoderResult(buf, request);
         }
 
         if (msg instanceof HttpContent) {
@@ -161,8 +159,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         System.err.println("received " + this.incomingRequest.toString());
-        //return false;
-        ///*
+        System.err.println("received " + this.incomingRequest.getBody().toString());
+
+        Set<Map.Entry<String, STHttpRequest>> inboundRequestSet = STRequestConfig.getConfig().getInboundRequestMap().entrySet();
+        for (Map.Entry<String, STHttpRequest> entry : inboundRequestSet) {
+            STHttpRequest request = entry.getValue();
+            //TODO: change ordering
+            STRequestMapping.compareRequests(this.incomingRequest, request);
+        }
+
+        return false;
+        /*
         //compare with config
 
         URL url = new URL("https://localhost:9999");
@@ -193,12 +200,13 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<Object> {
         }
 
         String response = builder.toString();
+        System.err.println(response);
 
         writer.close();
         reader.close();
 
         return true;
-        //*/
+        */
     }
 
     protected HashMap<String, String> decodeJsonBody() {

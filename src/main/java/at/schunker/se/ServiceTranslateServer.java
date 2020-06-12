@@ -1,5 +1,6 @@
 package at.schunker.se;
 
+import at.schunker.se.config.STRequestConfig;
 import at.schunker.se.helper.SSLConfiguration;
 import at.schunker.se.model.STHttpRequest;
 import com.google.gson.Gson;
@@ -25,9 +26,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 public class ServiceTranslateServer {
 
@@ -69,7 +68,7 @@ public class ServiceTranslateServer {
             b.group(bossGroup, workerGroup);
             b.channel(NioServerSocketChannel.class);
             b.handler(new LoggingHandler(LogLevel.INFO));
-            b.childHandler(new HttpServerInitializer(sslCtx));
+            b.childHandler(new STHttpServerInitializer(sslCtx));
 
             Channel ch = b.bind(PORT).sync().channel();
 
@@ -120,10 +119,39 @@ public class ServiceTranslateServer {
         System.err.println(a);
 
         Gson gson = new GsonBuilder().create();
-        //STHttpRequest httpRequest = gson.fromJson(json.getJSONObject("inbound").getJSONObject("request1").toString(), STHttpRequest.class);
-        Map<String, STHttpRequest> requestList = gson.fromJson(json.getJSONObject("inbound").toString(), new TypeToken<Map<String, STHttpRequest>>(){}.getType());
 
-        System.err.println(requestList.toString());
-        System.err.println(requestList.get("request1").toString());
+        //test
+        //STHttpRequest httpRequest = gson.fromJson(json.getJSONObject("inbound").getJSONObject("request1").toString(), STHttpRequest.class);
+
+        //inbound requests
+
+        Map<String, STHttpRequest> inboundRequestMap = gson.fromJson(json.getJSONObject("inbound").toString(), new TypeToken<Map<String, STHttpRequest>>(){}.getType());
+        //System.err.println(inboundRequestMap.toString());
+        //System.err.println(requestList.get("request1").toString());
+
+        //outbound requests
+
+        Map<String, STHttpRequest> outboundRequestMap = gson.fromJson(json.getJSONObject("outbound").toString(), new TypeToken<Map<String, STHttpRequest>>(){}.getType());
+
+        //set config
+
+        STRequestConfig config = STRequestConfig.getConfig();
+        config.setInboundRequestMap(inboundRequestMap);
+        config.setOutboundRequestMap(outboundRequestMap);
+
+        //print config
+
+        inboundRequestMap = config.getInboundRequestMap();
+        outboundRequestMap = config.getOutboundRequestMap();
+
+        for(Map.Entry<String, STHttpRequest> entry : inboundRequestMap.entrySet()) {
+            System.err.println(entry.getKey());
+            System.err.println(entry.getValue().toString());
+        }
+
+        for(Map.Entry<String, STHttpRequest> entry : outboundRequestMap.entrySet()) {
+            System.err.println(entry.getKey());
+            System.err.println(entry.getValue().toString());
+        }
     }
 }

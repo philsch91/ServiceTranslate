@@ -2,8 +2,12 @@
   "test": "value",
   "inbound": {
     "request1": {
+      "hostname": "localhost:9999",
       "uri": "/",
-      "headers": [],
+      "headers": {
+        "Accept": "*/*",
+        "Content-Type": "application/json"
+      },
       "body": {
         "msg": "val1"
       }
