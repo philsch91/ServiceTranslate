@@ -1,10 +1,12 @@
 package at.schunker.se;
 
 import at.schunker.se.config.STRequestConfig;
-import at.schunker.se.helper.STRequestMapping;
+import at.schunker.se.helper.STRequestComparing;
 import at.schunker.se.model.STHttpRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -19,11 +21,7 @@ import io.netty.util.CharsetUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.URL;
+import java.lang.reflect.Type;
 import java.util.*;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -153,7 +151,7 @@ public class STHttpServerHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     protected boolean handleJsonRequest() throws Exception {
-        HashMap<String, String> body = this.decodeJsonBody();
+        LinkedTreeMap<String, String> body = this.decodeJsonBody();
         if (body == null) {
             return false;
         }
@@ -164,8 +162,13 @@ public class STHttpServerHandler extends SimpleChannelInboundHandler<Object> {
         Set<Map.Entry<String, STHttpRequest>> inboundRequestSet = STRequestConfig.getConfig().getInboundRequestMap().entrySet();
         for (Map.Entry<String, STHttpRequest> entry : inboundRequestSet) {
             STHttpRequest request = entry.getValue();
-            //TODO: change ordering
-            STRequestMapping.compareRequests(this.incomingRequest, request);
+            boolean result = STRequestComparing.compareRequests(request, this.incomingRequest);
+
+            if (result) {
+                System.err.println("Match found");
+                System.err.println(entry.getKey());
+                System.err.println(request);
+            }
         }
 
         return false;
@@ -209,7 +212,7 @@ public class STHttpServerHandler extends SimpleChannelInboundHandler<Object> {
         */
     }
 
-    protected HashMap<String, String> decodeJsonBody() {
+    protected LinkedTreeMap<String, String> decodeJsonBody() {
         String contentType = this.incomingRequest.getHeaders().get("Content-Type");
         if (contentType == null || !contentType.equalsIgnoreCase("application/json")) {
             return null;
@@ -224,10 +227,13 @@ public class STHttpServerHandler extends SimpleChannelInboundHandler<Object> {
             return null;
         }
 
-        HashMap<String, String> body = null;
+        //HashMap<String, String> body = null;
+        LinkedTreeMap<String, String> body = null;
 
         Gson gson = new GsonBuilder().create();
-        body = gson.fromJson(json.toString(), HashMap.class);
+        //body = gson.fromJson(json.toString(), HashMap.class);
+        Type stringStringMapType = new TypeToken<Map<String, String>>(){}.getType();
+        body = gson.fromJson(json.toString(), stringStringMapType);
         this.incomingRequest.setBody(body);
 
         return body;

@@ -9,7 +9,18 @@
         "Content-Type": "application/json"
       },
       "body": {
-        "msg": "val1"
+        "msg": "HelloWorld"
+      }
+    },
+    "request2": {
+      "hostname": "localhost:9999",
+      "uri": "/",
+      "headers": {
+        "Accept": "*/*",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "key": "val"
       }
     }
   },
@@ -22,7 +33,18 @@
       },
       "body": {
         "newMsg": "request1.body.msg",
-        "additionalMsg": "val2"
+        "additionalMsg": "val"
+      }
+    },
+    "request2": {
+      "url": "http://localhost:9999",
+      "uri": "/",
+      "headers": {
+        "Cache-Control": "no-cache"
+      },
+      "body": {
+        "newKey": "request2.body.key",
+        "additionalMsg": "val"
       }
     }
   }
