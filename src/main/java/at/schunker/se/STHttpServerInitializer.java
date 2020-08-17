@@ -7,11 +7,11 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslContext;
 
-public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
+public class STHttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private final SslContext sslCtx;
 
-    public HttpServerInitializer(SslContext sslCtx) {
+    public STHttpServerInitializer(SslContext sslCtx) {
         this.sslCtx = sslCtx;
     }
 
@@ -27,6 +27,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast(new HttpResponseEncoder());
         // Remove the following line if you don't want automatic content compression.
         //p.addLast(new HttpContentCompressor());
-        p.addLast(new HttpServerHandler());
+        p.addLast(new STHttpServerHandler());
     }
 }
